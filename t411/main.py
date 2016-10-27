@@ -1,0 +1,164 @@
+# coding: utf8
+from couchpotato.core.helpers.encoding import simplifyString
+from couchpotato.core.helpers.variable import getIdentifier
+from couchpotato.core.logger import CPLog
+from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
+from couchpotato.core.media.movie.providers.base import MovieProvider
+from couchpotato.environment import Env
+import datetime
+import json
+import requests
+import traceback
+import urllib
+
+class T411(TorrentProvider, MovieProvider):
+    """
+    Couchpotato plugin to search movies torrents using T411 APIs. More information about T411 APIs on 
+    https://api.t411.ch.
+    """
+
+    urlProtocol = 'https'
+    basePathApi = 'api.t411.ch'
+    basePathWww = 'www.t411.ch'
+    http_time_between_calls = 1
+    tokenTTL = 90 # T411 authentication token TTL = 90 days
+    tokenTimestamp = None
+    log = CPLog(__name__)
+
+    def __init__(self):
+        """
+        Default constructor
+        """
+        TorrentProvider.__init__(self)
+        MovieProvider.__init__(self)
+        self.urls = {
+            'login' : self.urlProtocol+'://'+self.basePathApi+'/auth'
+        }
+        self.proxies = {}
+        if(Env.setting('use_proxy')):
+            proxy_server = Env.setting('proxy_server')
+            proxy_username = Env.setting('proxy_username')
+            proxy_password = Env.setting('proxy_password')
+            if(proxy_server):
+                loc = '{0}:{1}@{2}'.format(proxy_username, proxy_password, proxy_server) if proxy_username else proxy_server
+                self.proxies = {
+                    "http": "http://"+loc,
+                    "https": "https://"+loc,
+                }
+            else:
+                self.proxies = urllib.getproxies()
+
+    def check(self, json):
+        error = json.get('error')
+        if(error is not None):
+            raise T411Error(json.get('code'), json.get('error'))
+
+    def loginDownload(self, url = '', nzb_id = ''):
+        """
+        Override couchpotato.core.media._base.providers.base.py#YarrProvider.loginDownload(...) method.
+        It log to the T411 torrents provider and retrieve the torrent file researched as binary data.
+        """
+        result = None
+        try:
+            if(self.login()):
+                result = requests.get(url, headers=self.headers, proxies=self.proxies).content
+        except:
+            self.log.error('Failed getting release from %s: %s', (self.getName(), traceback.format_exc()))
+        return result
+
+    def getToken(self):
+        """
+        Get T411 HTTP authentication header.
+        """
+        now = datetime.datetime.now()
+        if(self.tokenTimestamp is None) or ((now - self.tokenTimestamp).days >= self.tokenTTL):
+            login = {
+                'username': self.conf('username'),
+                'password': self.conf('password')
+            }
+            auth = requests.post(self.urls.get('login'), data=login, proxies=self.proxies)
+            data = auth.json()
+            self.check(data)
+            self.tokenTimestamp = now
+            self.token = data['token']
+        return self.token
+
+    def formatQualities(self, quality):
+        """
+        Generate a snippet of a T411 searching request by adding the current quality term and his alternatives. For 
+        more informations see http://www.t411.ch/faq/#300.
+        """
+        result = [quality.get('identifier')]
+        for alt in quality.get('alternative'):
+            if(isinstance(alt, basestring)):
+                result.append(alt)
+            else:
+                result.append('({0})'.format('&'.join(alt)))
+        return '|'.join(result)
+
+    def login(self):
+        """
+        Override couchpotato.core.media._base.providers.base.py#YarrProvider.login(...) method.
+        Log to the torrents provider and store the HTTP header token.
+        """
+        result = False
+        try:
+            token = self.getToken()
+            if(token is not None) and (token != ''):
+                self.headers = {
+                    'Authorization' : token
+                }
+                result = True
+        except T411Error as e:
+            self.log.error('T411 return code {0}: {1}'.format(e.code, e.message))
+        return result
+
+    def _searchOnTitle(self, title, media, quality, results):
+        """
+        Do the job ;P. See couchpotato.core.media._base.providers.base.py#YarrProvider.search(...) method for more 
+        informations.
+        """
+        try:
+            params = {
+                'cid': 631, # Movie category
+                'offset': 0,
+                'limit': 50 # We only select the 50 firsts results
+            }
+            query = '{0} {1}'.format(simplifyString(title), self.formatQualities(quality))
+            self.log.debug(query)
+            url = self.urlProtocol+'://'+self.basePathApi+'/torrents/search/'+urllib.quote(query)
+            search = requests.get(url, params=params, headers=self.headers, proxies=self.proxies)
+            data = search.json()
+            self.check(data)
+            now = datetime.datetime.now()
+            for torrent in data['torrents']:
+                added = datetime.datetime.strptime(torrent['added'], '%Y-%m-%d %H:%M:%S')
+                size = int(torrent['size'])/1024 # Convert size from byte to kilobyte
+                result = {
+                    'id': int(torrent['id']),
+                    'name': torrent['name'],
+                    'seeders': int(torrent['seeders']),
+                    'leechers': int(torrent['leechers']),
+                    'size': self.parseSize(str(size)+'kb'),
+                    'age': (now - added).days,
+                    'url': self.urlProtocol+'://'+self.basePathApi+'/torrents/download/'+torrent['id'],
+                    'detail_url': self.urlProtocol+'://'+self.basePathWww+'/torrents/?id='+torrent['id'],
+                    'verified': True if(torrent['isVerified']=='1') else False
+                }
+                self.log.debug(result.get('name'))
+                results.append(result)
+        except:
+            self.log.error('Failed searching release from %s: %s', (self.getName(), traceback.format_exc()))
+
+class T411Error(Exception):
+    """
+    Representation of a T411 error.
+    """
+
+    def __init__(self, code, message):
+        """
+        Default constructor
+        """
+        Exception.__init__(self)
+        self.code = code
+        self.message = message
