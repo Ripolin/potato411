@@ -4,6 +4,7 @@ import ConfigParser
 import logging
 import os
 import sys
+import unittest
 
 # Root path
 base_path = dirname(os.path.abspath(__file__))
@@ -17,15 +18,6 @@ from couchpotato.core.media._base.providers.base import ResultList
 from couchpotato.core.settings import Settings
 from couchpotato.environment import Env
 from main import T411
-
-settings = Settings()
-settings.setFile(base_path+'/test.cfg')
-Env.set('settings', settings)
-handler = logging.StreamHandler(sys.stdout)
-
-t411 = T411()
-t411.log.logger.setLevel('DEBUG')
-t411.log.logger.addHandler(handler)
 
 qualities = [
     {'identifier': '2160p', 'hd': True, 'allow_3d': True, 'size': (10000, 650000), 'median_size': 20000, 'label': '2160p', 'width': 3840, 'height': 2160, 'alternative': [], 'allow': [], 'ext':['mkv'], 'tags': ['x264', 'h264', '2160']},
@@ -42,22 +34,35 @@ qualities = [
     {'identifier': 'cam', 'size': (600, 1000), 'median_size': 700, 'label': 'Cam', 'alternative': ['camrip', 'hdcam'], 'allow': ['720p', '1080p'], 'ext':[]}
 ]
 
-if(t411.login()):
-    results = ResultList(t411, {'identifier': 'tt0110912', 'type': 'movie'}, qualities[2], imdb_results = False)
-    t411._searchOnTitle(u'pulp fiction', {'identifier': 'tt0110912', 'type': 'movie'}, qualities[2], results)
-    results = ResultList(t411, {'identifier': 'tt1922645', 'type': 'movie'}, qualities[2], imdb_results = False)
-    t411._searchOnTitle(u'la fée', {'identifier': 'tt1922645', 'type': 'movie'}, qualities[2], results)
-    results = ResultList(t411, {'identifier': 'tt4513674', 'type': 'movie'}, qualities[2], imdb_results = False)
-    t411._searchOnTitle(u'café society', {'identifier': 'tt4513674', 'type': 'movie'}, qualities[2], results)
-    results = ResultList(t411, {'identifier': 'tt1599348', 'type': 'movie'}, qualities[2], imdb_results = False)
-    t411._searchOnTitle(u'safe house', {'identifier': 'tt1599348', 'type': 'movie'}, qualities[2], results)
-    results = ResultList(t411, {'identifier': 'tt4298958', 'type': 'movie'}, qualities[5], imdb_results = False)
-    t411._searchOnTitle(u'les délices de tokyo', {'identifier': 'tt4298958', 'type': 'movie', 'category': {'required': ''}}, qualities[5], results)
+level = 'DEBUG'
+handler = logging.StreamHandler(sys.stdout)
 
-# Test wrong authentication
-settings.setFile(base_path+'/wrong.cfg')
-Env.set('settings', settings)
-t411 = T411()
-t411.log.logger.setLevel('DEBUG')
-t411.log.logger.addHandler(handler)
-t411.login()
+class TestPotato411(unittest.TestCase):
+
+    def setUp(self, conf='/test.cfg'):
+        settings = Settings()
+        settings.setFile(base_path+conf)
+        Env.set('settings', settings)
+        self.t411 = T411()
+        self.t411.log.logger.setLevel(level)
+        self.t411.log.logger.addHandler(handler)
+
+    def test_login(self):
+        self.assertTrue(self.t411.login())
+
+    def test_loginKO(self):
+        self.setUp(conf='/wrong.cfg')
+        self.assertFalse(self.t411.login())
+
+    def test_searchMovie(self):
+        results = []
+        self.t411._searchOnTitle(u'the bourne identity', {'identifier': 'tt0258463', 'type': 'movie', 'category': {'required': ''}}, qualities[2], results)
+        self.assertTrue(len(results)>0)
+
+    def test_searchMovieWithAccent(self):
+        results = []
+        self.t411._searchOnTitle(u'les délices de tokyo', {'identifier': 'tt4298958', 'type': 'movie', 'category': {'required': ''}}, qualities[2], results)
+        self.assertTrue(len(results)>0)
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestPotato411)
+unittest.TextTestRunner(verbosity=2).run(suite)
