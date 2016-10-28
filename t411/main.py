@@ -47,7 +47,7 @@ class T411(TorrentProvider, MovieProvider):
             else:
                 self.proxies = urllib.getproxies()
 
-    def urlopen(self, method, url, params=None, headers=None, proxies=None, data=None):
+    def urlopen(self, method, url, params=None, headers=None, proxies=None, data=None, check=True):
         """
         Proxyfi request to T411. T411 API reject all requests with a 'User-Agent' HTTP header, it's why we don't use 
         the couchpotato.core.plugins.base.py#Plugin.urlopen(...) method. Furthermore Plugin.urlopen(...) don't let
@@ -56,10 +56,11 @@ class T411(TorrentProvider, MovieProvider):
         """
         response = method(url, params=params, headers=headers, proxies=proxies, data=data, timeout=30)
         response.raise_for_status()
-        error = response.json().get('error')
-        if(error is not None):
-            code = response.json().get('code')
-            raise T411Error(code, error)
+        if(check):
+            error = response.json().get('error')
+            if(error):
+                code = response.json().get('code')
+                raise T411Error(code, error)
         return response
 
     def loginDownload(self, url='', nzb_id=''):
@@ -70,7 +71,7 @@ class T411(TorrentProvider, MovieProvider):
         result = None
         try:
             if(self.login()):
-                result = self.urlopen(requests.get, url, headers=self.headers, proxies=self.proxies).content
+                result = self.urlopen(requests.get, url, headers=self.headers, proxies=self.proxies, check=False).content
         except:
             self.log.error('Failed getting release from %s: %s', (self.getName(), traceback.format_exc()))
         return result
