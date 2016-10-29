@@ -23,7 +23,6 @@ class T411(TorrentProvider, MovieProvider):
     tokenTTL = 90 # T411 authentication token TTL = 90 days
     tokenTimestamp = None
     headers = {}
-    proxies = {}
     urls = {}
     log = CPLog(__name__)
 
@@ -34,27 +33,34 @@ class T411(TorrentProvider, MovieProvider):
         TorrentProvider.__init__(self)
         MovieProvider.__init__(self)
         self.urls['login'] = self.urlProtocol+'://'+self.basePathApi+'/auth'
+
+    def getProxySetting(self):
+        """
+        Get the CouchPotato proxy setting.
+        """
+        result = None
         if(Env.setting('use_proxy')):
             proxy_server = Env.setting('proxy_server')
             proxy_username = Env.setting('proxy_username')
             proxy_password = Env.setting('proxy_password')
             if(proxy_server):
                 loc = '{0}:{1}@{2}'.format(proxy_username, proxy_password, proxy_server) if proxy_username else proxy_server
-                self.proxies = {
+                result = {
                     "http": "http://"+loc,
                     "https": "https://"+loc,
                 }
             else:
-                self.proxies = urllib.getproxies()
+                result = urllib.getproxies()
+        return result
 
-    def urlopen(self, method, url, params=None, headers=None, proxies=None, data=None, check=True):
+    def urlopen(self, method, url, params=None, headers=None, data=None, check=True):
         """
         Proxyfi request to T411. T411 API reject all requests with a 'User-Agent' HTTP header, it's why we don't use 
         the couchpotato.core.plugins.base.py#Plugin.urlopen(...) method. Furthermore Plugin.urlopen(...) don't let
         the caller handle the HTTP method. We also don't use the session hide behind the Env.get('http_opener') 
         function, T411 API calls are stateless.
         """
-        response = method(url, params=params, headers=headers, proxies=proxies, data=data, timeout=30)
+        response = method(url, params=params, headers=headers, proxies=self.getProxySetting(), data=data, timeout=30)
         response.raise_for_status()
         if(check):
             error = response.json().get('error')
@@ -71,7 +77,7 @@ class T411(TorrentProvider, MovieProvider):
         result = None
         try:
             if(self.login()):
-                result = self.urlopen(requests.get, url, headers=self.headers, proxies=self.proxies, check=False).content
+                result = self.urlopen(requests.get, url, headers=self.headers, check=False).content
         except:
             self.log.error('Failed getting release from %s: %s', (self.getName(), traceback.format_exc()))
         return result
@@ -86,13 +92,13 @@ class T411(TorrentProvider, MovieProvider):
                 'username': self.conf('username'),
                 'password': self.conf('password')
             }
-            auth = self.urlopen(requests.post, self.urls.get('login'), data=login, proxies=self.proxies)
+            auth = self.urlopen(requests.post, self.urls.get('login'), data=login)
             data = auth.json()
             self.tokenTimestamp = now
             self.token = data['token']
         return self.token
 
-    def formatQualities(self, quality):
+    def formatQuality(self, quality):
         """
         Generate a snippet of a T411 searching request by adding the current quality term and its alternatives. For 
         more informations see http://www.t411.ch/faq/#300.
@@ -113,7 +119,7 @@ class T411(TorrentProvider, MovieProvider):
         result = False
         try:
             token = self.getToken()
-            if(token is not None) and (token != ''):
+            if(token):
                 self.headers['Authorization'] = token
                 result = True
         except T411Error as e:
@@ -131,10 +137,10 @@ class T411(TorrentProvider, MovieProvider):
                 'offset': 0,
                 'limit': 50 # We only select the 50 firsts results
             }
-            query = '{0} {1}'.format(simplifyString(title), self.formatQualities(quality))
+            query = '{0} {1}'.format(simplifyString(title), self.formatQuality(quality))
             self.log.debug(query)
             url = self.urlProtocol+'://'+self.basePathApi+'/torrents/search/'+urllib.quote(query)
-            search = self.urlopen(requests.get, url, params=params, headers=self.headers, proxies=self.proxies)
+            search = self.urlopen(requests.get, url, params=params, headers=self.headers)
             data = search.json()
             now = datetime.datetime.now()
             for torrent in data['torrents']:
