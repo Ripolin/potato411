@@ -64,5 +64,9 @@ class TestPotato411(unittest.TestCase):
         self.t411._searchOnTitle(u'les délices de tokyo', {'identifier': 'tt4298958', 'type': 'movie', 'category': {'required': ''}}, qualities[2], results)
         self.assertTrue(len(results)>0)
 
+    def test_download(self):
+        data = self.t411.loginDownload('https://api.t411.ch/torrents/download/5549739')
+        self.assertTrue(len(data)>0)
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestPotato411)
 unittest.TextTestRunner(verbosity=2).run(suite)
