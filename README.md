@@ -1,7 +1,7 @@
 #potato411
 
 [![Build Status](https://travis-ci.org/Ripolin/potato411.svg?branch=ci)](https://travis-ci.org/Ripolin/potato411)
-[![Coverage Status](https://coveralls.io/repos/github/Ripolin/potato411/badge.svg?branch=coverage)](https://coveralls.io/github/Ripolin/potato411?branch=coverage)
+[![Coverage Status](https://coveralls.io/repos/github/Ripolin/potato411/badge.svg?branch=master)](https://coveralls.io/github/Ripolin/potato411?branch=master)
 
 T411 torrent provider implementation for CouchPotato. It uses the official [T411's API] (https://api.t411.ch) without parsing any HTML files.
 
