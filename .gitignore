@@ -1,5 +1,7 @@
 couchpotato
+.cache
 
 test.cfg
 wrong.cfg
 *.pyc
+.coverage

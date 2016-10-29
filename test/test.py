@@ -4,7 +4,6 @@ import ConfigParser
 import logging
 import os
 import sys
-import unittest
 
 # Root path
 base_path = dirname(os.path.abspath(__file__))
@@ -37,7 +36,7 @@ qualities = [
 level = 'DEBUG'
 handler = logging.StreamHandler(sys.stdout)
 
-class TestPotato411(unittest.TestCase):
+class TestPotato411:
 
     def setUp(self, conf='/test.cfg'):
         settings = Settings()
@@ -48,23 +47,27 @@ class TestPotato411(unittest.TestCase):
         self.t411.log.logger.addHandler(handler)
 
     def test_login(self):
-        self.assertTrue(self.t411.login())
+        self.setUp()
+        assert self.t411.login()
 
     def test_loginKO(self):
         self.setUp(conf='/wrong.cfg')
-        self.assertFalse(self.t411.login())
+        assert self.t411.login() == False
 
     def test_searchMovie(self):
+        self.setUp()
         results = []
         self.t411._searchOnTitle(u'the bourne identity', {'identifier': 'tt0258463', 'type': 'movie', 'category': {'required': ''}}, qualities[2], results)
-        self.assertTrue(len(results)>0)
+        assert len(results)>0
 
     def test_searchMovieWithAccent(self):
+        self.setUp()
         results = []
         self.t411._searchOnTitle(u'les délices de tokyo', {'identifier': 'tt4298958', 'type': 'movie', 'category': {'required': ''}}, qualities[2], results)
-        self.assertTrue(len(results)>0)
+        assert len(results)>0
 
     def test_download(self):
+        self.setUp()
         data = self.t411.loginDownload('https://api.t411.ch/torrents/download/5549739')
-        self.assertTrue(len(data)>0)
+        assert len(data)>0
 
