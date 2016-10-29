@@ -68,5 +68,3 @@ class TestPotato411(unittest.TestCase):
         data = self.t411.loginDownload('https://api.t411.ch/torrents/download/5549739')
         self.assertTrue(len(data)>0)
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestPotato411)
-unittest.TextTestRunner(verbosity=2).run(suite)

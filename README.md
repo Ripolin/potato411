@@ -1,5 +1,7 @@
 #potato411
 
+[![Build Status](https://travis-ci.org/Ripolin/potato411.svg?branch=ci)](https://travis-ci.org/Ripolin/potato411)
+
 T411 torrent provider implementation for CouchPotato. It uses the official [T411's API] (https://api.t411.ch) without parsing any HTML files.
 
 ##How to install
