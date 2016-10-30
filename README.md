@@ -33,4 +33,4 @@ Example :
 languages = fr
 ```
 
-Now CouchPotato will retrieve any french titles of searching movies. Just select it and the plugin does the rest.
+Now CouchPotato is able to retrieve any movie's french title. Just select it and the plugin does the rest.
