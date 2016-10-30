@@ -10,8 +10,8 @@ Before run tests, create inside the test dir a file named `test.cfg` by copying 
 
 Now you're able to run unit tests by launching the command : ```$python -m pytest test/test.py t411/main.py --cov t411/main.py --cov-report term-missing```
 
-```bash
 You should see something like this :
+```bash
 ================================ test session starts ================================
 platform linux2 -- Python 2.7.9, pytest-3.0.3, py-1.4.31, pluggy-0.4.0
 plugins: cov-2.4.0
