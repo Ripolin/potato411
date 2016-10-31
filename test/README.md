@@ -12,20 +12,20 @@ Now you're able to run unit tests by launching the command : ```$python -m pytes
 
 You should see something like this :
 ```bash
-================================ test session starts ================================
-platform linux2 -- Python 2.7.9, pytest-3.0.3, py-1.4.31, pluggy-0.4.0
-plugins: cov-2.4.0
-collected 5 items
+============================= test session starts ==============================
+platform linux2 -- Python 2.7.9 -- py-1.4.26 -- pytest-2.6.4
+plugins: cache, pep8, cov
+collected 9 items
 
-test/test.py .....
+test/test.py .........
 
 ---------- coverage: platform linux2, python 2.7.9-final-0 -----------
 Name           Stmts   Miss  Cover   Missing
 --------------------------------------------
-t411/main.py     100      9    91%   47-48, 81-82, 108-111, 162-163
+t411/t411.py     102      4    96%   93-94, 188-189
 
 
-============================== 5 passed in 10.41 seconds =============================
+=========================== 9 passed in 2.55 seconds ===========================
 ```
 
 Cfg files are snippets of the CouchPotato configuration file `config.ini`. Depending your execution environment (proxies, etc...), you can customize them if necessary to run unit tests.
