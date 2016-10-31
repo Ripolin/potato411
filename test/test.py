@@ -16,7 +16,7 @@ sys.path.insert(2, os.path.join(base_path, '../t411'))
 from couchpotato.core.settings import Settings  # nopep8
 from couchpotato.core.plugins.quality import QualityPlugin  # nopep8
 from couchpotato.environment import Env  # nopep8
-from main import T411  # nopep8
+from t411 import T411  # nopep8
 
 plug = QualityPlugin()
 qualities = plug.qualities
@@ -65,6 +65,21 @@ class TestPotato411:
         self.t411._searchOnTitle(u'les délices de tokyo', media,
                                  qualities[2], results)
         assert len(results) > 0
+
+    def test_authproxy(self):
+        self.setUp('/authproxy.cfg')
+        proxies = self.t411.getProxySetting()
+        assert proxies['http'] == 'http://jdoe:supersecure@mytestproxy.com'
+
+    def test_proxy(self):
+        self.setUp('/proxy.cfg')
+        proxies = self.t411.getProxySetting()
+        assert proxies['http'] == 'http://mytestproxy.com'
+
+    def test_quality(self):
+        self.setUp()
+        snippet = self.t411.formatQuality(qualities[5])
+        assert snippet == 'dvdr|br2dvd|(dvd&r)'
 
     def test_download(self):
         self.setUp()
