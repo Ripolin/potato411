@@ -24,7 +24,6 @@ class T411(TorrentProvider, MovieProvider):
     tokenTTL = 90  # T411 authentication token TTL = 90 days
     tokenTimestamp = None
     headers = {}
-    urls = {}
     log = CPLog(__name__)
 
     def __init__(self):
@@ -33,7 +32,14 @@ class T411(TorrentProvider, MovieProvider):
         """
         TorrentProvider.__init__(self)
         MovieProvider.__init__(self)
-        self.urls['login'] = self.urlProtocol+'://'+self.basePathApi+'/auth'
+        wwwLoc = self.urlProtocol+'://'+self.basePathWww
+        apiLoc = self.urlProtocol+'://'+self.basePathApi
+        self.urls = {
+            'login': apiLoc+'/auth',
+            'search': apiLoc+'/torrents/search/',
+            'url': apiLoc+'/torrents/download/',
+            'detail_url': wwwLoc+'/torrents/?id='
+        }
 
     def getProxySetting(self):
         """
@@ -88,7 +94,8 @@ class T411(TorrentProvider, MovieProvider):
         result = None
         try:
             if(self.login()):
-                result = self.urlopen(requests.get, url, headers=self.headers,
+                result = self.urlopen(requests.get, url+str(nzb_id),
+                                      headers=self.headers,
                                       check=False).content
         except:
             self.log.error('Failed getting release from %s: %s',
@@ -158,8 +165,7 @@ class T411(TorrentProvider, MovieProvider):
             query = '{0} {1}'.format(simplifyString(title),
                                      self.formatQuality(quality))
             self.log.debug(query)
-            url = (self.urlProtocol+'://'+self.basePathApi +
-                   '/torrents/search/'+urllib.quote(query))
+            url = self.urls['search']+urllib.quote(query)
             search = self.urlopen(requests.get, url, params=params,
                                   headers=self.headers)
             data = search.json()
@@ -167,7 +173,7 @@ class T411(TorrentProvider, MovieProvider):
             for torrent in data['torrents']:
                 added = datetime.datetime.strptime(torrent['added'],
                                                    '%Y-%m-%d %H:%M:%S')
-                # Convert size from byte tokilobyte
+                # Convert size from byte to kilobyte
                 size = int(torrent['size'])/1024
                 result = {
                     'id': int(torrent['id']),
@@ -176,10 +182,8 @@ class T411(TorrentProvider, MovieProvider):
                     'leechers': int(torrent['leechers']),
                     'size': self.parseSize(str(size)+'kb'),
                     'age': (now - added).days,
-                    'url': (self.urlProtocol+'://'+self.basePathApi +
-                            '/torrents/download/'+torrent['id']),
-                    'detail_url': (self.urlProtocol+'://'+self.basePathWww +
-                                   '/torrents/?id='+torrent['id']),
+                    'url': self.urls['url'],
+                    'detail_url': self.urls['detail_url']+torrent['id'],
                     'verified': bool(int(torrent['isVerified']))
                 }
                 self.log.debug('{0}|{1}'.format(result.get('id'),

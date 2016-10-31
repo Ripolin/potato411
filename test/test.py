@@ -83,6 +83,6 @@ class TestPotato411:
 
     def test_download(self):
         self.setUp()
-        url = 'https://api.t411.ch/torrents/download/5549739'
-        data = self.t411.loginDownload(url)
+        nzb_id = 5549739
+        data = self.t411.loginDownload(self.t411.urls['url'], nzb_id)
         assert len(data) > 0
