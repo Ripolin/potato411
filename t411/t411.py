@@ -1,6 +1,5 @@
 # coding: utf8
 from couchpotato.core.helpers.encoding import simplifyString
-from couchpotato.core.helpers.variable import getIdentifier
 from couchpotato.core.logger import CPLog
 from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
 from couchpotato.core.media.movie.providers.base import MovieProvider
