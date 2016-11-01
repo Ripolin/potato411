@@ -4,8 +4,7 @@ from couchpotato.core.logger import CPLog
 from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
 from couchpotato.core.media.movie.providers.base import MovieProvider
 from couchpotato.environment import Env
-import datetime
-import json
+from datetime import datetime
 import requests
 import traceback
 import urllib
@@ -96,15 +95,15 @@ class T411(TorrentProvider, MovieProvider):
                 result = self.urlopen(requests.get, url+str(nzb_id),
                                       headers=self.headers).content
         except:
-            self.log.error('Failed getting release from %s: %s',
-                           self.getName(), traceback.format_exc())
+            self.log.error('Failed getting release from {0}: {1}'.
+                            format(self.getName(), traceback.format_exc()))
         return result
 
     def getToken(self):
         """
         Get T411 HTTP authentication header.
         """
-        now = datetime.datetime.now()
+        now = datetime.now()
         if(self.tokenTimestamp is None) or ((now - self.tokenTimestamp).
                                             days >= self.tokenTTL):
             login = {
@@ -140,13 +139,14 @@ class T411(TorrentProvider, MovieProvider):
         """
         result = False
         try:
-            token = self.getToken()
-            if(token):
-                self.headers['Authorization'] = token
-                result = True
+            self.headers['Authorization'] = self.getToken()
+            result = True
         except T411Error as e:
             self.log.error('T411 return code {0}: {1}'.format(e.code,
                                                               e.message))
+        except:
+            self.log.error('Failed to login {0}: {1}'.
+                            format(self.getName(), traceback.format_exc()))
         return result
 
     def _searchOnTitle(self, title, media, quality, results):
@@ -167,10 +167,10 @@ class T411(TorrentProvider, MovieProvider):
             search = self.urlopen(requests.get, url, params=params,
                                   headers=self.headers)
             data = search.json()
-            now = datetime.datetime.now()
+            now = datetime.now()
             for torrent in data['torrents']:
-                added = datetime.datetime.strptime(torrent['added'],
-                                                   '%Y-%m-%d %H:%M:%S')
+                added = datetime.strptime(torrent['added'],
+                                          '%Y-%m-%d %H:%M:%S')
                 # Convert size from byte to kilobyte
                 size = int(torrent['size'])/1024
                 result = {
@@ -188,8 +188,8 @@ class T411(TorrentProvider, MovieProvider):
                                simplifyString(result.get('name'))))
                 results.append(result)
         except:
-            self.log.error('Failed searching release from %s: %s',
-                           self.getName(), traceback.format_exc())
+            self.log.error('Failed searching release from {0}: {1}'.
+                            format(self.getName(), traceback.format_exc()))
 
 
 class T411Error(Exception):
