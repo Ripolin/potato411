@@ -63,8 +63,7 @@ class T411(TorrentProvider, MovieProvider):
                 result = urllib.getproxies()
         return result
 
-    def urlopen(self, method, url, params=None, headers=None, data=None,
-                check=True):
+    def urlopen(self, method, url, params=None, headers=None, data=None):
         """
         Proxyfi request to T411. T411 API reject all requests with
         a 'User-Agent' HTTP header, it's why we don't use the
@@ -77,7 +76,8 @@ class T411(TorrentProvider, MovieProvider):
                           proxies=self.getProxySetting(), data=data,
                           timeout=30)
         response.raise_for_status()
-        if(check):
+        # No response checking when content type is a binary torrent file
+        if(response.headers.get('content-type') != 'application/x-bittorrent'):
             error = response.json().get('error')
             if(error):
                 code = response.json().get('code')
@@ -94,8 +94,7 @@ class T411(TorrentProvider, MovieProvider):
         try:
             if(self.login()):
                 result = self.urlopen(requests.get, url+str(nzb_id),
-                                      headers=self.headers,
-                                      check=False).content
+                                      headers=self.headers).content
         except:
             self.log.error('Failed getting release from %s: %s',
                            self.getName(), traceback.format_exc())
