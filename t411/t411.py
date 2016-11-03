@@ -21,6 +21,7 @@ class T411(TorrentProvider, MovieProvider):
     basePathWww = 'www.t411.ch'
     tokenTTL = 90  # T411 authentication token TTL = 90 days
     tokenTimestamp = None
+    token = None
     headers = {}
     log = CPLog(__name__)
 
@@ -44,12 +45,12 @@ class T411(TorrentProvider, MovieProvider):
         Get the CouchPotato proxy setting.
         """
         result = None
-        if(Env.setting('use_proxy')):
+        if Env.setting('use_proxy'):
             proxy_server = Env.setting('proxy_server')
             proxy_username = Env.setting('proxy_username')
             proxy_password = Env.setting('proxy_password')
-            if(proxy_server):
-                if(proxy_username):
+            if proxy_server:
+                if proxy_username:
                     loc = '{0}:{1}@{2}'.format(proxy_username,
                                                proxy_password, proxy_server)
                 else:
@@ -76,9 +77,9 @@ class T411(TorrentProvider, MovieProvider):
                           timeout=30)
         response.raise_for_status()
         # No response checking when content type is a binary torrent file
-        if(response.headers.get('content-type') != 'application/x-bittorrent'):
+        if response.headers.get('content-type') != 'application/x-bittorrent':
             error = response.json().get('error')
-            if(error):
+            if error:
                 code = response.json().get('code')
                 raise T411Error(code, error)
         return response
@@ -91,7 +92,7 @@ class T411(TorrentProvider, MovieProvider):
         """
         result = None
         try:
-            if(self.login()):
+            if self.login():
                 result = self.urlopen(requests.get, url+str(nzb_id),
                                       headers=self.headers).content
         except:
@@ -125,7 +126,7 @@ class T411(TorrentProvider, MovieProvider):
         """
         result = [quality.get('identifier')]
         for alt in quality.get('alternative'):
-            if(isinstance(alt, basestring)):
+            if isinstance(alt, basestring):
                 result.append(alt)
             else:
                 result.append('({0})'.format('&'.join(alt)))

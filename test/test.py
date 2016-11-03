@@ -1,6 +1,5 @@
 # coding: utf8
 from os.path import dirname
-import ConfigParser
 import logging
 import os
 import sys
