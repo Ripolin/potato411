@@ -153,7 +153,7 @@ class T411(TorrentProvider, MovieProvider):
         """
         try:
             params = {
-                'cid': 631,  # Movie category
+                'cid': 210,  # Movie/Video category
                 'offset': 0,
                 'limit': 50  # We only select the 50 firsts results
             }

@@ -56,7 +56,7 @@ class TestPotato411:
         t411 = self.setUp()
         results = []
         media = {
-            'identifier': 'tt4298958',
+            'identifier': 'tt2948356',
             'type': 'movie',
             'category': {'required': ''}
         }
@@ -64,6 +64,21 @@ class TestPotato411:
         assert isLogged
         if isLogged:
             t411._searchOnTitle(u'les délices de tokyo', media,
+                                qualities[2], results)
+            assert len(results) > 0
+
+    def test_searchAnim(self):
+        t411 = self.setUp()
+        results = []
+        media = {
+            'identifier': 'tt',
+            'type': 'movie',
+            'category': {'required': ''}
+        }
+        isLogged = t411.login()
+        assert isLogged
+        if isLogged:
+            t411._searchOnTitle(u'zootopia', media,
                                 qualities[2], results)
             assert len(results) > 0
 
