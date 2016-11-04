@@ -21,8 +21,6 @@ class T411(TorrentProvider, MovieProvider):
     basePathWww = 'www.t411.ch'
     tokenTTL = 90  # T411 authentication token TTL = 90 days
     tokenTimestamp = None
-    token = None
-    headers = {}
     log = CPLog(__name__)
 
     def __init__(self):
@@ -38,6 +36,9 @@ class T411(TorrentProvider, MovieProvider):
             'search': apiLoc+'/torrents/search/',
             'url': apiLoc+'/torrents/download/',
             'detail_url': wwwLoc+'/torrents/?id='
+        }
+        self.headers = {
+            'Authorization': None
         }
 
     def getProxySetting(self):
@@ -100,24 +101,6 @@ class T411(TorrentProvider, MovieProvider):
                             format(self.getName(), traceback.format_exc()))
         return result
 
-    def getToken(self):
-        """
-        Get T411 HTTP authentication header.
-        """
-        now = datetime.now()
-        if(self.tokenTimestamp is None) or ((now - self.tokenTimestamp).
-                                            days >= self.tokenTTL):
-            login = {
-                'username': self.conf('username'),
-                'password': self.conf('password')
-            }
-            auth = self.urlopen(requests.post, self.urls.get('login'),
-                                data=login)
-            data = auth.json()
-            self.tokenTimestamp = now
-            self.token = data['token']
-        return self.token
-
     def formatQuality(self, quality):
         """
         Generate a snippet of a T411 searching request by adding the current
@@ -135,19 +118,31 @@ class T411(TorrentProvider, MovieProvider):
     def login(self):
         """
         Override couchpotato.core.media._base.providers.base.py#YarrProvider.
-        login(...) method. Log to the torrents provider and store the HTTP
-        header token.
+        login(...) method. Log to T411 torrents provider and store the HTTP
+        authentication header token.
         """
         result = False
-        try:
-            self.headers['Authorization'] = self.getToken()
-            result = True
-        except T411Error as e:
-            self.log.error('T411 return code {0}: {1}'.format(e.code,
-                                                              e.message))
-        except:
-            self.log.error('Failed to login {0}: {1}'.
-                            format(self.getName(), traceback.format_exc()))
+        now = datetime.now()
+        if (self.tokenTimestamp is None) or ((now - self.tokenTimestamp).
+                                             days >= self.tokenTTL):
+            login = {
+                'username': self.conf('username'),
+                'password': self.conf('password')
+            }
+            try:
+                auth = self.urlopen(requests.post, self.urls.get('login'),
+                                    data=login)
+                data = auth.json()
+                self.headers['Authorization'] = data['token']
+                self.tokenTimestamp = now
+                result = True
+            except T411Error as e:
+                self.log.error('T411 return code {0}: {1}'.format(e.code,
+                                                                  e.message))
+            except:
+                self.log.error('Failed to login {0}: {1}'.
+                                format(self.getName(),
+                                traceback.format_exc()))
         return result
 
     def _searchOnTitle(self, title, media, quality, results):
