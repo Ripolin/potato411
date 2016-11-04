@@ -121,7 +121,7 @@ class T411(TorrentProvider, MovieProvider):
         login(...) method. Log to T411 torrents provider and store the HTTP
         authentication header token.
         """
-        result = False
+        result = True
         now = datetime.now()
         if (self.tokenTimestamp is None) or ((now - self.tokenTimestamp).
                                              days >= self.tokenTTL):
@@ -135,14 +135,15 @@ class T411(TorrentProvider, MovieProvider):
                 data = auth.json()
                 self.headers['Authorization'] = data['token']
                 self.tokenTimestamp = now
-                result = True
             except T411Error as e:
                 self.log.error('T411 return code {0}: {1}'.format(e.code,
                                                                   e.message))
+                result = False
             except:
                 self.log.error('Failed to login {0}: {1}'.
                                 format(self.getName(),
                                 traceback.format_exc()))
+                result = False
         return result
 
     def _searchOnTitle(self, title, media, quality, results):

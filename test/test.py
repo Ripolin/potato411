@@ -30,6 +30,13 @@ class TestPotato411:
         t411 = self.setUp(conf='/wrong.cfg')
         assert not t411.login()
 
+    def test_login(self):
+        t411 = self.setUp()
+        isLogged = t411.login()
+        assert isLogged
+        isLogged = t411.login()
+        assert isLogged
+
     def test_searchMovie(self):
         t411 = self.setUp()
         results = []
