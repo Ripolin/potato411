@@ -94,7 +94,7 @@ class T411(TorrentProvider, MovieProvider):
         result = None
         try:
             if self.login():
-                result = self.urlopen(requests.get, url+str(nzb_id),
+                result = self.urlopen(requests.get, url,
                                       headers=self.headers).content
         except:
             self.log.error('Failed getting release from {0}: {1}'.
@@ -177,7 +177,7 @@ class T411(TorrentProvider, MovieProvider):
                     'leechers': int(torrent['leechers']),
                     'size': self.parseSize(str(size)+'kb'),
                     'age': (now - added).days,
-                    'url': self.urls['url'],
+                    'url': self.urls['url']+torrent['id'],
                     'detail_url': self.urls['detail_url']+torrent['id'],
                     'verified': bool(int(torrent['isVerified']))
                 }
