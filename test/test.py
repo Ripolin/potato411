@@ -3,7 +3,9 @@ from os.path import dirname
 import logging
 import os
 import sys
+import requests
 
+from cache import FileSystemCache
 from couchpotato.core.settings import Settings
 from couchpotato.core.plugins.quality import QualityPlugin
 from couchpotato.environment import Env
@@ -13,6 +15,8 @@ base_path = dirname(os.path.abspath(__file__))
 plug = QualityPlugin()
 qualities = plug.qualities
 handler = logging.StreamHandler(sys.stdout)
+session = requests.Session()
+session.max_redirects = 5
 
 
 class TestPotato411:
@@ -21,6 +25,8 @@ class TestPotato411:
         settings = Settings()
         settings.setFile(base_path+conf)
         Env.set('settings', settings)
+        Env.set('http_opener', session)
+        Env.set('cache', FileSystemCache(base_path+'/cache'))
         t411 = T411()
         t411.log.logger.setLevel('DEBUG')
         t411.log.logger.addHandler(handler)
@@ -81,16 +87,6 @@ class TestPotato411:
             t411._searchOnTitle(u'zootopia', media,
                                 qualities[2], results)
             assert len(results) > 0
-
-    def test_authproxy(self):
-        t411 = self.setUp('/authproxy.cfg')
-        proxies = t411.getProxySetting()
-        assert proxies['http'] == 'http://jdoe:supersecure@mytestproxy.com'
-
-    def test_proxy(self):
-        t411 = self.setUp('/proxy.cfg')
-        proxies = t411.getProxySetting()
-        assert proxies['http'] == 'http://mytestproxy.com'
 
     def test_quality(self):
         t411 = self.setUp()
