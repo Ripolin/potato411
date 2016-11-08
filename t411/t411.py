@@ -13,11 +13,11 @@ class T411(TorrentProvider, MovieProvider):
     information about T411 APIs on https://api.t411.ch.
     """
 
-    urlProtocol = 'https'
-    basePathApi = 'api.t411.ch'
-    basePathWww = 'www.t411.ch'
-    tokenTTL = 90  # T411 authentication token TTL = 90 days
-    tokenTimestamp = None
+    url_scheme = 'https'
+    url_netloc_api = 'api.t411.ch'
+    url_netloc_www = 'www.t411.ch'
+    token_ttl = 90  # T411 authentication token TTL = 90 days
+    token_timestamp = None
     http_time_between_calls = 0
     log = CPLog(__name__)
 
@@ -27,13 +27,13 @@ class T411(TorrentProvider, MovieProvider):
         """
         TorrentProvider.__init__(self)
         MovieProvider.__init__(self)
-        wwwLoc = self.urlProtocol+'://'+self.basePathWww
-        apiLoc = self.urlProtocol+'://'+self.basePathApi
+        path_www = self.url_scheme+'://'+self.url_netloc_www
+        path_api = self.url_scheme+'://'+self.url_netloc_api
         self.urls = {
-            'login': apiLoc+'/auth',
-            'search': apiLoc+'/torrents/search/{0} {1}?{2}',
-            'url': apiLoc+'/torrents/download/',
-            'detail_url': wwwLoc+'/torrents/?id='
+            'login': path_api+'/auth',
+            'search': path_api+'/torrents/search/{0} {1}?{2}',
+            'url': path_api+'/torrents/download/',
+            'detail_url': path_www+'/torrents/?id='
         }
         self.headers = {
             'Authorization': None
@@ -41,8 +41,9 @@ class T411(TorrentProvider, MovieProvider):
 
     def loginDownload(self, url='', nzb_id=''):
         """
-        Override couchpotato.core.media._base.providers.base.py#YarrProvider.
-        loginDownload(...) method. It appends T411 HTTP authentication header.
+        It appends a T411 HTTP authentication header to the download request.
+
+        .. seealso:: YarrProvider.loginDownload
         """
         result = None
         try:
@@ -69,24 +70,23 @@ class T411(TorrentProvider, MovieProvider):
 
     def login(self):
         """
-        Override couchpotato.core.media._base.providers.base.py#YarrProvider.
-        login(...) method. Log to T411 torrents provider and store the HTTP
-        authentication header token.
+        Log to T411 torrents provider and store the HTTP authentication
+        header token.
+
+        .. seealso:: YarrProvider.login
         """
         result = True
         now = datetime.now()
-        if (self.tokenTimestamp is None) or ((now - self.tokenTimestamp).
-                                             days >= self.tokenTTL):
-            kwargs = {
-                'data': {
-                    'username': self.conf('username'),
-                    'password': self.conf('password')
-                }
+        if (self.token_timestamp is None) or ((now - self.token_timestamp).
+                                              days >= self.token_ttl):
+            data = {
+                'username': self.conf('username'),
+                'password': self.conf('password')
             }
             try:
-                data = self.getJsonData(self.urls.get('login'), **kwargs)
+                data = self.getJsonData(self.urls.get('login'), data=data)
                 self.headers['Authorization'] = data['token']
-                self.tokenTimestamp = now
+                self.token_timestamp = now
             except:
                 if data and ('error' in data):
                     self.log.error('T411 error code {0}: {1}'.
@@ -103,8 +103,9 @@ class T411(TorrentProvider, MovieProvider):
 
     def _searchOnTitle(self, title, media, quality, results):
         """
-        Do the job ;P. See couchpotato.core.media._base.providers.base.py#
-        YarrProvider.search(...) method for more informations.
+        Do a T411 search based on possible titles.
+
+        .. seealso:: YarrProvider.search
         """
         try:
             params = {
@@ -112,13 +113,10 @@ class T411(TorrentProvider, MovieProvider):
                 'offset': 0,
                 'limit': 50  # We only select the 50 firsts results
             }
-            kwargs = {
-                'headers': self.headers
-            }
             url = self.urls['search'].format(simplifyString(title),
                                              self.formatQuality(quality),
                                              tryUrlencode(params))
-            data = self.getJsonData(url, **kwargs)
+            data = self.getJsonData(url, headers=self.headers)
             now = datetime.now()
             for torrent in data['torrents']:
                 added = datetime.strptime(torrent['added'],
@@ -141,4 +139,4 @@ class T411(TorrentProvider, MovieProvider):
                 results.append(result)
         except:
             self.log.error('Failed searching release from {0}: {1}'.
-                            format(self.getName(), traceback.format_exc()))
+                           format(self.getName(), traceback.format_exc()))

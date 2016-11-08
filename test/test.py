@@ -16,7 +16,6 @@ plug = QualityPlugin()
 qualities = plug.qualities
 handler = logging.StreamHandler(sys.stdout)
 session = requests.Session()
-session.max_redirects = 5
 
 
 class NoCache(BaseCache):
