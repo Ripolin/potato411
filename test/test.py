@@ -5,7 +5,7 @@ import os
 import sys
 import requests
 
-from cache import FileSystemCache
+from cache import BaseCache
 from couchpotato.core.settings import Settings
 from couchpotato.core.plugins.quality import QualityPlugin
 from couchpotato.environment import Env
@@ -19,6 +19,11 @@ session = requests.Session()
 session.max_redirects = 5
 
 
+class NoCache(BaseCache):
+    def get(self, key):
+        pass
+
+
 class TestPotato411:
 
     def setUp(self, conf='/test.cfg'):
@@ -26,7 +31,7 @@ class TestPotato411:
         settings.setFile(base_path+conf)
         Env.set('settings', settings)
         Env.set('http_opener', session)
-        Env.set('cache', FileSystemCache(base_path+'/cache'))
+        Env.set('cache', NoCache())
         t411 = T411()
         t411.log.logger.setLevel('DEBUG')
         t411.log.logger.addHandler(handler)
@@ -77,7 +82,7 @@ class TestPotato411:
         t411 = self.setUp()
         results = []
         media = {
-            'identifier': 'tt',
+            'identifier': 'tt2948356',
             'type': 'movie',
             'category': {'required': ''}
         }
