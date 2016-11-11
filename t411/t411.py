@@ -87,6 +87,7 @@ class T411(TorrentProvider, MovieProvider):
                 data = self.getJsonData(self.urls.get('login'), data=data)
                 self.headers['Authorization'] = data['token']
                 self.token_timestamp = now
+                self.login_failures = 0
             except:
                 if data and ('error' in data):
                     self.log.error('T411 error code {0}: {1}'.
