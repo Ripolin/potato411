@@ -7,7 +7,7 @@ T411 torrent provider implementation for CouchPotato. It uses the official [T411
 
 ##How to install
 
-Once checkout, copy the `t411` directory directly under the `CP_CONFIG_DIR/data/customs_plugin` directory of your CouchPotato server. When it's done, restart it. You'll see a new entry T411 on the Settings>Searcher location.
+Once checkout, copy the `t411` directory directly under the `DATA_DIR/data/customs_plugin` directory of your CouchPotato server. When it's done, restart it. You'll see a new entry T411 on the Settings>Searcher location.
 
 ##Development
 
@@ -23,7 +23,7 @@ Use issue tracker.
 
 ##Additional informations
 
-It's not the purpose of this plugin to manage additional languages for searching torrents. As lucky we are, CouchPotato does this job. Just verify in your `config.ini` file in your `CP_CONFIG_DIR` directory that you have the property `languages` correctly filled in the `core` section.
+It's not the purpose of this plugin to manage additional languages for searching torrents. As lucky we are, CouchPotato does this job. Just verify in your `settings.conf` file in your `DATA_DIR` directory that you have the property `languages` correctly filled in the `core` section.
 
 Example :
 
@@ -34,3 +34,14 @@ languages = fr
 ```
 
 Now CouchPotato is able to retrieve any movie's french title. Just select it and the plugin does the rest.
+
+The `languages` property is a comma separated list of locales and CouchPotato recognize the first entry value as the default one. Furthermore it's useless to append the english locale `en` to this list cause CouchPotato always use it automaticaly.
+
+Multiple locales configuration example:
+
+```ini
+[core]
+...
+languages = fr,de,sp,it
+```
+

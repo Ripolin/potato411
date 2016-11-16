@@ -28,4 +28,4 @@ t411/t411.py     102      4    96%   93-94, 188-189
 =========================== 9 passed in 2.55 seconds ===========================
 ```
 
-Cfg files are snippets of the CouchPotato configuration file `config.ini`. Depending your execution environment (proxies, etc...), you can customize them if necessary to run unit tests.
+Cfg files are snippets of the CouchPotato configuration file `settings.conf`. Depending your execution environment (proxies, etc...), you can customize them if necessary to run unit tests.
