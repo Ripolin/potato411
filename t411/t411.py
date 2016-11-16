@@ -79,12 +79,12 @@ class T411(TorrentProvider, MovieProvider):
         now = datetime.now()
         if (self.token_timestamp is None) or ((now - self.token_timestamp).
                                               days >= self.token_ttl):
-            data = {
+            auth = {
                 'username': self.conf('username'),
                 'password': self.conf('password')
             }
             try:
-                data = self.getJsonData(self.urls.get('login'), data=data)
+                data = self.getJsonData(self.urls.get('login'), data=auth)
                 self.headers['Authorization'] = data['token']
                 self.token_timestamp = now
                 self.login_failures = 0
