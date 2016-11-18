@@ -51,7 +51,7 @@ class T411(TorrentProvider, MovieProvider):
                 result = self.urlopen(url, headers=self.headers)
         except:
             self.log.error('Failed getting release from {0}: {1}'.
-                            format(self.getName(), traceback.format_exc()))
+                           format(self.getName(), traceback.format_exc()))
         return result
 
     def formatQuality(self, quality):

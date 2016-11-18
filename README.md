@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Ripolin/potato411.svg?branch=ci)](https://travis-ci.org/Ripolin/potato411)
 [![Coverage Status](https://coveralls.io/repos/github/Ripolin/potato411/badge.svg?branch=master)](https://coveralls.io/github/Ripolin/potato411?branch=master)
 
-T411 torrent provider implementation for CouchPotato. It uses the official [T411's API] (https://api.t411.ch) without parsing any HTML files.
+T411 torrent provider implementation for CouchPotato. It uses the official [T411's API](https://api.t411.ch) without parsing any HTML files.
 
 ##How to install
 
@@ -11,11 +11,11 @@ Once checkout, copy the `t411` directory directly under the `DATA_DIR/data/custo
 
 ##Development
 
-Be sure you're running the latest version of [Python 2.7] (http://python.org/).
+Be sure you're running the latest version of [Python 2.7](http://python.org/).
 
 ### Tests
 
-More information in the [test directory] (test).
+More information in the [test directory](test).
 
 ##Issues
 
