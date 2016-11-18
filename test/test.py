@@ -14,8 +14,6 @@ from t411 import T411
 base_path = dirname(os.path.abspath(__file__))
 plug = QualityPlugin()
 qualities = plug.qualities
-handler = logging.StreamHandler(sys.stdout)
-session = requests.Session()
 
 
 class NoCache(BaseCache):
@@ -29,11 +27,11 @@ class TestPotato411:
         settings = Settings()
         settings.setFile(base_path+conf)
         Env.set('settings', settings)
-        Env.set('http_opener', session)
+        Env.set('http_opener', requests.Session())
         Env.set('cache', NoCache())
         t411 = T411()
         t411.log.logger.setLevel('DEBUG')
-        t411.log.logger.addHandler(handler)
+        t411.log.logger.addHandler(logging.StreamHandler(sys.stdout))
         return t411
 
     def test_loginKO(self):

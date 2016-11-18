@@ -57,7 +57,7 @@ class T411(TorrentProvider, MovieProvider):
     def formatQuality(self, quality):
         """
         Generate a snippet of a T411 searching request by adding the current
-        quality term and its alternatives. For more informations see
+        quality term and its alternatives. For more information see
         http://www.t411.ch/faq/#300.
         """
         result = [quality.get('identifier')]

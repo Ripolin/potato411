@@ -15,13 +15,13 @@ Be sure you're running the latest version of [Python 2.7] (http://python.org/).
 
 ### Tests
 
-More informations in the [test directory] (test).
+More information in the [test directory] (test).
 
 ##Issues
 
 Use issue tracker.
 
-##Additional informations
+##Additional information
 
 It's not the purpose of this plugin to manage additional languages for searching torrents. As lucky we are, CouchPotato does this job. Just verify in your `settings.conf` file in your `DATA_DIR` directory that you have the property `languages` correctly filled in the `core` section.
 
@@ -35,9 +35,9 @@ languages = fr
 
 Now CouchPotato is able to retrieve any movie's french title. Just select it and the plugin does the rest.
 
-The `languages` property is a comma separated list of locales and CouchPotato recognize the first entry value as the default one. Furthermore it's useless to append the english locale `en` to this list cause CouchPotato always use it automaticaly.
+The `languages` property is a comma separated list of locales and CouchPotato recognize the first entry value as the default one. Furthermore it's useless to append the english locale `en` to this list cause CouchPotato always use it automatically.
 
-Multiple locales configuration example:
+Multiple locales configuration example :
 
 ```ini
 [core]
