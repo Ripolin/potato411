@@ -10,12 +10,12 @@ import traceback
 class T411(TorrentProvider, MovieProvider):
     """
     Couchpotato plugin to search movies torrents using T411 APIs. More
-    information about T411 APIs on https://api.t411.ch.
+    information about T411 APIs on https://api.t411.li.
     """
 
     url_scheme = 'https'
-    url_netloc_api = 'api.t411.ch'
-    url_netloc_www = 'www.t411.ch'
+    url_netloc_api = 'api.t411.li'
+    url_netloc_www = 'www.t411.li'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
     http_time_between_calls = 0
@@ -58,7 +58,7 @@ class T411(TorrentProvider, MovieProvider):
         """
         Generate a snippet of a T411 searching request by adding the current
         quality term and its alternatives. For more information see
-        http://www.t411.ch/faq/#300.
+        http://www.t411.li/faq/#300.
         """
         result = [quality.get('identifier')]
         for alt in quality.get('alternative'):
