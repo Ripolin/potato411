@@ -2,6 +2,7 @@
 from os.path import dirname
 import logging
 import os
+import pytest
 import sys
 import requests
 
@@ -9,7 +10,7 @@ from cache import BaseCache
 from couchpotato.core.settings import Settings
 from couchpotato.core.plugins.quality import QualityPlugin
 from couchpotato.environment import Env
-from t411 import T411
+from t411 import T411, T411Error
 
 base_path = dirname(os.path.abspath(__file__))
 plug = QualityPlugin()
@@ -99,3 +100,12 @@ class TestPotato411:
         t411 = self.setUp()
         data = t411.loginDownload(t411.urls['url']+'5549739')
         assert len(data) > 0
+
+    def test_error(self):
+        t411 = self.setUp()
+        data = {
+            'code': 101,
+            'error': 'User not found'
+        }
+        with pytest.raises(T411Error):
+            t411.checkError(data)

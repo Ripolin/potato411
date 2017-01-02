@@ -1,5 +1,5 @@
 # coding: utf8
-from .t411 import T411
+from .t411 import T411, T411Error
 
 
 def autoload():

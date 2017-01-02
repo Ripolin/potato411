@@ -68,6 +68,13 @@ class T411(TorrentProvider, MovieProvider):
                 result.append('({0})'.format('&'.join(alt)))
         return '|'.join(result)
 
+    def checkError(self, data):
+        """
+        Check if a T411 response contains an error.
+        """
+        if data and ('error' in data):
+            raise T411Error(data['code'], data['error'])
+
     def login(self):
         """
         Log to T411 torrents provider and store the HTTP authentication
@@ -85,21 +92,24 @@ class T411(TorrentProvider, MovieProvider):
             }
             try:
                 data = self.getJsonData(self.urls.get('login'), data=auth)
+                self.checkError(data)
                 self.headers['Authorization'] = data['token']
                 self.token_timestamp = now
                 self.login_failures = 0
-            except:
-                if data and ('error' in data):
-                    self.log.error('T411 error code {0}: {1}'.
-                                   format(data['code'], data['error']))
-                else:
-                    self.log.error('Failed to login {0}: {1}'.
-                                   format(self.getName(),
-                                          traceback.format_exc()))
-                self.login_failures += 1
-                if self.login_failures >= 3:
-                    self.disableAccount()
+            except T411Error as e:
+                self.log.error('T411 return code {0}: {1}'.format(e.code,
+                                                                  e.message))
                 result = False
+            except:
+                self.log.error('Failed to login {0}: {1}'.
+                               format(self.getName(),
+                                      traceback.format_exc()))
+                result = False
+            finally:
+                if not result:
+                    self.login_failures += 1
+                    if self.login_failures >= 3:
+                        self.disableAccount()
         return result
 
     def _searchOnTitle(self, title, media, quality, results):
@@ -118,6 +128,7 @@ class T411(TorrentProvider, MovieProvider):
                                              self.formatQuality(quality),
                                              tryUrlencode(params))
             data = self.getJsonData(url, headers=self.headers)
+            self.checkError(data)
             now = datetime.now()
             for torrent in data['torrents']:
                 added = datetime.strptime(torrent['added'],
@@ -138,6 +149,23 @@ class T411(TorrentProvider, MovieProvider):
                 self.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))
                 results.append(result)
+        except T411Error as e:
+            self.log.error('T411 return code {0}: {1}'.format(e.code,
+                                                              e.message))
         except:
             self.log.error('Failed searching release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))
+
+
+class T411Error(Exception):
+    """
+    Representation of a T411 error.
+    """
+
+    def __init__(self, code, message):
+        """
+        Default constructor
+        """
+        Exception.__init__(self)
+        self.code = code
+        self.message = message
