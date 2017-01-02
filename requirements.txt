@@ -1,4 +1,4 @@
-pytest
-pytest-cov
-pytest-pep8
-coveralls
+pytest == 3.0.5
+pytest-cov == 2.4.0
+pytest-pep8 == 1.0.6
+coveralls == 1.1

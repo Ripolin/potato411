@@ -1,0 +1,2 @@
+[run]
+omit = t411/__init__.py
