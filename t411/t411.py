@@ -4,6 +4,7 @@ from couchpotato.core.logger import CPLog
 from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
 from couchpotato.core.media.movie.providers.base import MovieProvider
 from datetime import datetime
+import json
 import traceback
 
 
@@ -18,6 +19,7 @@ class T411(TorrentProvider, MovieProvider):
     url_netloc_www = 'www.t411.li'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
+    login_fail_msg = 'Wrong password'
     http_time_between_calls = 0
     log = CPLog(__name__)
 
@@ -31,6 +33,7 @@ class T411(TorrentProvider, MovieProvider):
         path_api = self.url_scheme+'://'+self.url_netloc_api
         self.urls = {
             'login': path_api+'/auth',
+            'login_check': path_api,  # Useless entry to validate login API
             'search': path_api+'/torrents/search/{0} {1}?{2}',
             'url': path_api+'/torrents/download/',
             'detail_url': path_www+'/torrents/?id='
@@ -42,6 +45,7 @@ class T411(TorrentProvider, MovieProvider):
     def loginDownload(self, url='', nzb_id=''):
         """
         It appends a T411 HTTP authentication header to the download request.
+        Override the YarrProvider.loginDownload.
 
         .. seealso:: YarrProvider.loginDownload
         """
@@ -70,46 +74,53 @@ class T411(TorrentProvider, MovieProvider):
 
     def checkError(self, data):
         """
-        Check if a T411 response contains an error.
+        Check if a T411 send an error.
         """
         if data and ('error' in data):
-            raise T411Error(data['code'], data['error'])
+            e = T411Error(data['code'], data['error'])
+            self.log.error('T411 return code {0}: {1}'.format(e.code,
+                                                              e.message))
+            raise e
 
-    def login(self):
+    def getLoginParams(self):
+        """
+        Return T411 login parameters.
+
+        .. seealso:: YarrProvider.getLoginParams
+        """
+        return {
+            'username': self.conf('username'),
+            'password': self.conf('password')
+        }
+
+    def loginSuccess(self, output):
         """
         Log to T411 torrents provider and store the HTTP authentication
         header token.
 
-        .. seealso:: YarrProvider.login
+        .. seealso:: YarrProvider.loginSuccess
+        """
+        try:
+            data = json.loads(output)
+            self.checkError(data)
+            self.headers['Authorization'] = data['token']
+            self.token_timestamp = datetime.now()
+        except:
+            raise
+        return True
+
+    def loginCheckSuccess(self, output):
+        """
+        Only check the validity of the user token. Output parameter is
+        useless, just here to validate the login API compliance.
+
+        .. seealso:: YarrProvider.loginCheckSuccess
         """
         result = True
         now = datetime.now()
         if (self.token_timestamp is None) or ((now - self.token_timestamp).
                                               days >= self.token_ttl):
-            auth = {
-                'username': self.conf('username'),
-                'password': self.conf('password')
-            }
-            try:
-                data = self.getJsonData(self.urls.get('login'), data=auth)
-                self.checkError(data)
-                self.headers['Authorization'] = data['token']
-                self.token_timestamp = now
-                self.login_failures = 0
-            except T411Error as e:
-                self.log.error('T411 return code {0}: {1}'.format(e.code,
-                                                                  e.message))
-                result = False
-            except:
-                self.log.error('Failed to login {0}: {1}'.
-                               format(self.getName(),
-                                      traceback.format_exc()))
-                result = False
-            finally:
-                if not result:
-                    self.login_failures += 1
-                    if self.login_failures >= 3:
-                        self.disableAccount()
+            result = False
         return result
 
     def _searchOnTitle(self, title, media, quality, results):
@@ -140,7 +151,7 @@ class T411(TorrentProvider, MovieProvider):
                     'name': torrent['name'],
                     'seeders': int(torrent['seeders']),
                     'leechers': int(torrent['leechers']),
-                    'size': self.parseSize(str(size)+'kb'),
+                    'size': self.parseSize(str(size)+self.size_kb[0]),
                     'age': (now - added).days,
                     'url': self.urls['url']+torrent['id'],
                     'detail_url': self.urls['detail_url']+torrent['id'],
@@ -149,9 +160,6 @@ class T411(TorrentProvider, MovieProvider):
                 self.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))
                 results.append(result)
-        except T411Error as e:
-            self.log.error('T411 return code {0}: {1}'.format(e.code,
-                                                              e.message))
         except:
             self.log.error('Failed searching release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))

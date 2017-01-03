@@ -3,8 +3,9 @@ from os.path import dirname
 import logging
 import os
 import pytest
-import sys
 import requests
+import sys
+import time
 
 from cache import BaseCache
 from couchpotato.core.settings import Settings
@@ -41,6 +42,14 @@ class TestPotato411:
 
     def test_login(self):
         t411 = self.setUp()
+        isLogged = t411.login()
+        assert isLogged
+        isLogged = t411.login()
+        assert isLogged
+
+    def test_loginCheck(self):
+        t411 = self.setUp()
+        t411.last_login_check = time.time()-7200
         isLogged = t411.login()
         assert isLogged
         isLogged = t411.login()
