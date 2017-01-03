@@ -45,7 +45,7 @@ class T411(TorrentProvider, MovieProvider):
     def loginDownload(self, url='', nzb_id=''):
         """
         It appends a T411 HTTP authentication header to the download request.
-        Override the YarrProvider.loginDownload.
+        Override the YarrProvider.loginDownload method.
 
         .. seealso:: YarrProvider.loginDownload
         """
@@ -74,7 +74,7 @@ class T411(TorrentProvider, MovieProvider):
 
     def checkError(self, data):
         """
-        Check if a T411 send an error.
+        Check if T411 send an error.
         """
         if data and ('error' in data):
             e = T411Error(data['code'], data['error'])
