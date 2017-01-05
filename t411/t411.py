@@ -162,7 +162,7 @@ class T411(TorrentProvider, MovieProvider):
                                simplifyString(result.get('name'))))
                 results.append(result)
             # Get next page if we don't have all results
-            if int(data['total']) > len(results):
+            if int(data['total']) > len(data['torrents'])+(offset*self.limit):
                 self._searchOnTitle(title, media, quality, results, offset+1)
         except:
             self.log.error('Failed searching release from {0}: {1}'.
