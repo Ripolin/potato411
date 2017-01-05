@@ -19,7 +19,9 @@ class T411(TorrentProvider, MovieProvider):
     url_netloc_www = 'www.t411.li'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
-    login_fail_msg = 'Wrong password'
+    offset = 0
+    limit = 200
+    login_fail_msg = 'Wrong password'  # Used by YarrProvider.login()
     http_time_between_calls = 0
     log = CPLog(__name__)
 
@@ -32,8 +34,8 @@ class T411(TorrentProvider, MovieProvider):
         path_www = self.url_scheme+'://'+self.url_netloc_www
         path_api = self.url_scheme+'://'+self.url_netloc_api
         self.urls = {
-            'login': path_api+'/auth',
-            'login_check': path_api,  # Useless entry to validate login API
+            'login': path_api+'/auth',  # Used by YarrProvider.login()
+            'login_check': path_api,  # Used by YarrProvider.login()
             'search': path_api+'/torrents/search/{0} {1}?{2}',
             'url': path_api+'/torrents/download/',
             'detail_url': path_www+'/torrents/?id='
@@ -132,8 +134,8 @@ class T411(TorrentProvider, MovieProvider):
         try:
             params = {
                 'cid': 210,  # Movie/Video category
-                'offset': 0,
-                'limit': 50  # We only select the 50 firsts results
+                'offset': self.offset,
+                'limit': self.limit
             }
             url = self.urls['search'].format(simplifyString(title),
                                              self.formatQuality(quality),
@@ -160,6 +162,12 @@ class T411(TorrentProvider, MovieProvider):
                 self.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))
                 results.append(result)
+            # Get next page if we don't have all results
+            if int(data['total']) > len(results):
+                self.offset += 1
+                self._searchOnTitle(title, media, quality, results)
+            else:
+                self.offset = 0
         except:
             self.log.error('Failed searching release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))

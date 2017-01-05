@@ -8,7 +8,7 @@
 
 Before run tests, create inside the test dir a file named `test.cfg` by copying the file `example.cfg`. Fill the properties `username` and `password` with your T411 account information.
 
-Now you're able to run unit tests by launching the command : ```$python -m pytest test/test.py --pep8 --cov t411 --cov-report term-missing```
+Now you're able to run unit tests by launching the command : ```$python -m pytest test/test.py t411 --pep8 --cov t411 --cov-report term-missing```
 
 You should see something like this :
 ```console

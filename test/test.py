@@ -16,6 +16,7 @@ from t411 import T411, T411Error
 base_path = dirname(os.path.abspath(__file__))
 plug = QualityPlugin()
 qualities = plug.qualities
+handler = logging.StreamHandler(sys.stdout)
 
 
 class NoCache(BaseCache):
@@ -33,7 +34,7 @@ class TestPotato411:
         Env.set('cache', NoCache())
         t411 = T411()
         t411.log.logger.setLevel('DEBUG')
-        t411.log.logger.addHandler(logging.StreamHandler(sys.stdout))
+        t411.log.logger.addHandler(handler)
         return t411
 
     def test_loginKO(self):
@@ -66,8 +67,8 @@ class TestPotato411:
         isLogged = t411.login()
         assert isLogged
         if isLogged:
-            t411._searchOnTitle(u'the bourne identity', media,
-                                qualities[2], results)
+            t411._searchOnTitle(u'the bourne identity', media, qualities[2],
+                                results)
             assert len(results) > 0
 
     def test_searchMovieWithAccent(self):
@@ -81,9 +82,24 @@ class TestPotato411:
         isLogged = t411.login()
         assert isLogged
         if isLogged:
-            t411._searchOnTitle(u'les délices de tokyo', media,
-                                qualities[2], results)
+            t411._searchOnTitle(u'les délices de tokyo', media, qualities[2],
+                                results)
             assert len(results) > 0
+
+    def test_searchMoviePagination(self):
+        t411 = self.setUp()
+        t411.limit = 50
+        results = []
+        media = {
+            'identifier': 'tt0258463',
+            'type': 'movie',
+            'category': {'required': ''}
+        }
+        isLogged = t411.login()
+        assert isLogged
+        if isLogged:
+            t411._searchOnTitle(u'avatar', media, qualities[2], results)
+            assert len(results) > t411.limit
 
     def test_searchAnim(self):
         t411 = self.setUp()
@@ -96,8 +112,7 @@ class TestPotato411:
         isLogged = t411.login()
         assert isLogged
         if isLogged:
-            t411._searchOnTitle(u'zootopia', media,
-                                qualities[2], results)
+            t411._searchOnTitle(u'zootopia', media, qualities[2], results)
             assert len(results) > 0
 
     def test_quality(self):
