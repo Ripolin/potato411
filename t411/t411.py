@@ -19,7 +19,6 @@ class T411(TorrentProvider, MovieProvider):
     url_netloc_www = 'www.t411.li'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
-    offset = 0
     limit = 200
     login_fail_msg = 'Wrong password'  # Used by YarrProvider.login()
     http_time_between_calls = 0
@@ -125,7 +124,7 @@ class T411(TorrentProvider, MovieProvider):
             result = False
         return result
 
-    def _searchOnTitle(self, title, media, quality, results):
+    def _searchOnTitle(self, title, media, quality, results, offset=0):
         """
         Do a T411 search based on possible titles.
 
@@ -134,7 +133,7 @@ class T411(TorrentProvider, MovieProvider):
         try:
             params = {
                 'cid': 210,  # Movie/Video category
-                'offset': self.offset,
+                'offset': offset,
                 'limit': self.limit
             }
             url = self.urls['search'].format(simplifyString(title),
@@ -164,10 +163,7 @@ class T411(TorrentProvider, MovieProvider):
                 results.append(result)
             # Get next page if we don't have all results
             if int(data['total']) > len(results):
-                self.offset += 1
-                self._searchOnTitle(title, media, quality, results)
-            else:
-                self.offset = 0
+                self._searchOnTitle(title, media, quality, results, offset+1)
         except:
             self.log.error('Failed searching release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))
