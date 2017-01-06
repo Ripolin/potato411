@@ -1,5 +1,6 @@
 # coding: utf8
 from os.path import dirname
+import collections
 import logging
 import os
 import pytest
@@ -99,6 +100,11 @@ class TestPotato411:
         assert isLogged
         if isLogged:
             t411._searchOnTitle(u'avatar', media, qualities[2], results)
+            ids = list()
+            for result in results:
+                if result['id'] not in ids:
+                    ids.append(result['id'])
+            assert len(results) == len(ids)  # No duplication
             assert len(results) > t411.limit
 
     def test_searchAnim(self):
