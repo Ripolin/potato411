@@ -1,6 +1,5 @@
 # coding: utf8
 from os.path import dirname
-import collections
 import logging
 import os
 import pytest
@@ -63,7 +62,8 @@ class TestPotato411:
         media = {
             'identifier': 'tt0258463',
             'type': 'movie',
-            'category': {'required': ''}
+            'category': {'required': ''},
+            'info': {'year': 2002}
         }
         isLogged = t411.login()
         assert isLogged
@@ -78,7 +78,8 @@ class TestPotato411:
         media = {
             'identifier': 'tt2948356',
             'type': 'movie',
-            'category': {'required': ''}
+            'category': {'required': ''},
+            'info': {'year': 2015}
         }
         isLogged = t411.login()
         assert isLogged
@@ -94,7 +95,8 @@ class TestPotato411:
         media = {
             'identifier': 'tt0258463',
             'type': 'movie',
-            'category': {'required': ''}
+            'category': {'required': ''},
+            'info': {'year': 2009}
         }
         isLogged = t411.login()
         assert isLogged
@@ -113,13 +115,28 @@ class TestPotato411:
         media = {
             'identifier': 'tt2948356',
             'type': 'movie',
-            'category': {'required': ''}
+            'category': {'required': ''},
+            'info': {'year': 2016}
         }
         isLogged = t411.login()
         assert isLogged
         if isLogged:
             t411._searchOnTitle(u'zootopia', media, qualities[2], results)
             assert len(results) > 0
+
+    def test_getMoreInfo(self):
+        t411 = self.setUp()
+        isLogged = t411.login()
+        assert isLogged
+        if isLogged:
+            nzb = {
+                'id': 5229736,
+                'name': 'Jin-Roh, la Brigade des Loups 1080p MULTI x264 -'
+                        ' Kayneth',
+                'year': '1999'
+            }
+            t411.getMoreInfo(nzb)
+            assert nzb['description'] is not None
 
     def test_quality(self):
         t411 = self.setUp()

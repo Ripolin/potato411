@@ -15,8 +15,7 @@ class T411(TorrentProvider, MovieProvider):
     """
 
     url_scheme = 'https'
-    url_netloc_api = 'api.t411.li'
-    url_netloc_www = 'www.t411.li'
+    domain_name = 't411.li'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
     limit = 200
@@ -30,13 +29,14 @@ class T411(TorrentProvider, MovieProvider):
         """
         TorrentProvider.__init__(self)
         MovieProvider.__init__(self)
-        path_www = self.url_scheme+'://'+self.url_netloc_www
-        path_api = self.url_scheme+'://'+self.url_netloc_api
+        path_www = self.url_scheme+'://www.'+self.domain_name
+        path_api = self.url_scheme+'://api.'+self.domain_name
         self.urls = {
             'login': path_api+'/auth',  # Used by YarrProvider.login()
             'login_check': path_api,  # Used by YarrProvider.login()
             'search': path_api+'/torrents/search/{0} {1}?{2}',
             'url': path_api+'/torrents/download/',
+            'detail': path_api+'/torrents/details/{0}',
             'detail_url': path_www+'/torrents/?id='
         }
         self.headers = {
@@ -124,6 +124,17 @@ class T411(TorrentProvider, MovieProvider):
             result = False
         return result
 
+    def getMoreInfo(self, nzb):
+        """
+        Get details about a T411 torrent.
+
+        .. seealso:: MovieSearcher.correctRelease
+        """
+        url = self.urls['detail'].format(nzb['id'])
+        data = self.getJsonData(url, headers=self.headers)
+        self.checkError(data)
+        nzb['description'] = data['description']
+
     def _searchOnTitle(self, title, media, quality, results, offset=0):
         """
         Do a T411 search based on possible titles.
@@ -156,7 +167,8 @@ class T411(TorrentProvider, MovieProvider):
                     'age': (now - added).days,
                     'url': self.urls['url']+torrent['id'],
                     'detail_url': self.urls['detail_url']+torrent['id'],
-                    'verified': bool(int(torrent['isVerified']))
+                    'verified': bool(int(torrent['isVerified'])),
+                    'get_more_info': self.getMoreInfo
                 }
                 self.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))
