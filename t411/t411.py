@@ -34,7 +34,7 @@ class T411(TorrentProvider, MovieProvider):
         self.urls = {
             'login': path_api+'/auth',  # Used by YarrProvider.login()
             'login_check': path_api,  # Used by YarrProvider.login()
-            'search': path_api+'/torrents/search/{0} {1}?{2}',
+            'search': path_api+'/torrents/search/{0}?{1}',
             'url': path_api+'/torrents/download/',
             'detail': path_api+'/torrents/details/{0}',
             'detail_url': path_www+'/torrents/?id='
@@ -58,20 +58,6 @@ class T411(TorrentProvider, MovieProvider):
             self.log.error('Failed getting release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))
         return result
-
-    def formatQuality(self, quality):
-        """
-        Generate a snippet of a T411 searching request by adding the current
-        quality term and its alternatives. For more information see
-        http://www.t411.li/faq/#300.
-        """
-        result = [quality.get('identifier')]
-        for alt in quality.get('alternative'):
-            if isinstance(alt, basestring):
-                result.append(alt)
-            else:
-                result.append('({0})'.format('&'.join(alt)))
-        return '|'.join(result)
 
     def checkError(self, data):
         """
@@ -137,7 +123,10 @@ class T411(TorrentProvider, MovieProvider):
 
     def _searchOnTitle(self, title, media, quality, results, offset=0):
         """
-        Do a T411 search based on possible titles.
+        Do a T411 search based on possible titles. This function doesn't check
+        the quality because CouchPotato do the job when parsing results.
+        Furthermore the URL must stay generic to use native CouchPotato
+        caching feature.
 
         .. seealso:: YarrProvider.search
         """
@@ -148,7 +137,6 @@ class T411(TorrentProvider, MovieProvider):
                 'limit': self.limit
             }
             url = self.urls['search'].format(simplifyString(title),
-                                             self.formatQuality(quality),
                                              tryUrlencode(params))
             data = self.getJsonData(url, headers=self.headers)
             self.checkError(data)

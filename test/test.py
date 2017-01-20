@@ -90,7 +90,6 @@ class TestPotato411:
 
     def test_searchMoviePagination(self):
         t411 = self.setUp()
-        t411.limit = 50
         results = []
         media = {
             'identifier': 'tt0258463',
@@ -137,11 +136,6 @@ class TestPotato411:
             }
             t411.getMoreInfo(nzb)
             assert nzb['description'] is not None
-
-    def test_quality(self):
-        t411 = self.setUp()
-        snippet = t411.formatQuality(qualities[5])
-        assert snippet == 'dvdr|br2dvd|(dvd&r)'
 
     def test_download(self):
         t411 = self.setUp()
