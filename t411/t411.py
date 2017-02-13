@@ -1,5 +1,6 @@
 # coding: utf8
 from couchpotato.core.helpers.encoding import simplifyString, tryUrlencode
+from couchpotato.core.helpers.variable import getImdb
 from couchpotato.core.logger import CPLog
 from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
 from couchpotato.core.media.movie.providers.base import MovieProvider
@@ -121,6 +122,21 @@ class T411(TorrentProvider, MovieProvider):
         self.checkError(data)
         nzb['description'] = data['description']
 
+    def extraCheck(self, nzb):
+        """
+        Exclusion when movie's description contains more than one IMDB
+        reference to prevent a movie bundle downloading. CouchPotato
+        is not able to extract a specific movie from an archive.
+
+        .. seealso:: MovieSearcher.correctRelease
+        """
+        result = True
+        ids = getImdb(nzb.get('description', ''), multiple=True)
+        if len(ids) not in [0, 1]:
+            self.log.info('Too much IMDB movies: {0}'.format(', '.join(ids)))
+            result = False
+        return result
+
     def _searchOnTitle(self, title, media, quality, results, offset=0):
         """
         Do a T411 search based on possible titles. This function doesn't check
@@ -156,7 +172,8 @@ class T411(TorrentProvider, MovieProvider):
                     'url': self.urls['url']+torrent['id'],
                     'detail_url': self.urls['detail_url']+torrent['id'],
                     'verified': bool(int(torrent['isVerified'])),
-                    'get_more_info': self.getMoreInfo
+                    'get_more_info': self.getMoreInfo,
+                    'extra_check': self.extraCheck
                 }
                 self.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))

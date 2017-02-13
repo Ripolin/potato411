@@ -123,6 +123,22 @@ class TestPotato411:
             t411._searchOnTitle(u'zootopia', media, qualities[2], results)
             assert len(results) > 0
 
+    def test_extraCheck(self):
+        t411 = self.setUp()
+        isLogged = t411.login()
+        assert isLogged
+        if isLogged:
+            nzb = {
+                'id': 5395543,
+                'name': 'Jurassic Park Collection (1993-2015) MULTi [1080p] '
+                        'BluRay x264-PopHD (world)'
+            }
+            t411.getMoreInfo(nzb)
+            assert nzb['description'] is not None
+            assert not t411.extraCheck(nzb)
+            del nzb['description']
+            assert t411.extraCheck(nzb)
+
     def test_getMoreInfo(self):
         t411 = self.setUp()
         isLogged = t411.login()
@@ -131,8 +147,7 @@ class TestPotato411:
             nzb = {
                 'id': 5229736,
                 'name': 'Jin-Roh, la Brigade des Loups 1080p MULTI x264 -'
-                        ' Kayneth',
-                'year': '1999'
+                        ' Kayneth'
             }
             t411.getMoreInfo(nzb)
             assert nzb['description'] is not None
