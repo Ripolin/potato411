@@ -68,6 +68,10 @@ class T411(TorrentProvider, MovieProvider):
             e = T411Error(data['code'], data['error'])
             self.log.error('T411 return code {0}: {1}'.format(e.code,
                                                               e.message))
+            # Error 202 = Invalid token
+            if e.code == 202:
+                self.headers['Authorization'] = None
+                self.token_timestamp = None
             raise e
 
     def getLoginParams(self):
@@ -197,5 +201,5 @@ class T411Error(Exception):
         Default constructor
         """
         Exception.__init__(self)
-        self.code = code
+        self.code = int(code)
         self.message = message
