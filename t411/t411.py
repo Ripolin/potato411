@@ -16,7 +16,7 @@ class T411(TorrentProvider, MovieProvider):
     """
 
     url_scheme = 'https'
-    domain_name = 't411.li'
+    domain_name = 't411.ai'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
     limit = 200
