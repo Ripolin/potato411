@@ -36,9 +36,9 @@ class T411(TorrentProvider, MovieProvider):
             'login': path_api+'/auth',  # Used by YarrProvider.login()
             'login_check': path_api,  # Used by YarrProvider.login()
             'search': path_api+'/torrents/search/{0}?{1}',
-            'url': path_api+'/torrents/download/',
+            'url': path_api+'/torrents/download/{0}',
             'detail': path_api+'/torrents/details/{0}',
-            'detail_url': path_www+'/torrents/?id='
+            'detail_url': path_www+'/torrents/?id={0}'
         }
         self.headers = {
             'Authorization': None
@@ -68,8 +68,9 @@ class T411(TorrentProvider, MovieProvider):
             e = T411Error(data['code'], data['error'])
             self.log.error('T411 return code {0}: {1}'.format(e.code,
                                                               e.message))
+            # Error 201 = Token has expired
             # Error 202 = Invalid token
-            if e.code == 202:
+            if e.code in [201, 202]:
                 self.headers['Authorization'] = None
                 self.token_timestamp = None
             raise e
@@ -166,15 +167,16 @@ class T411(TorrentProvider, MovieProvider):
                                           '%Y-%m-%d %H:%M:%S')
                 # Convert size from byte to kilobyte
                 size = int(torrent['size'])/1024
+                tid = int(torrent['id'])
                 result = {
-                    'id': int(torrent['id']),
+                    'id': tid,
                     'name': torrent['name'],
                     'seeders': int(torrent['seeders']),
                     'leechers': int(torrent['leechers']),
                     'size': self.parseSize(str(size)+self.size_kb[0]),
                     'age': (now - added).days,
-                    'url': self.urls['url']+torrent['id'],
-                    'detail_url': self.urls['detail_url']+torrent['id'],
+                    'url': self.urls['url'].format(tid),
+                    'detail_url': self.urls['detail_url'].format(tid),
                     'verified': bool(int(torrent['isVerified'])),
                     'get_more_info': self.getMoreInfo,
                     'extra_check': self.extraCheck
