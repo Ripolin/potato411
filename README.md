@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Ripolin/potato411.svg?branch=ci)](https://travis-ci.org/Ripolin/potato411)
 [![Coverage Status](https://coveralls.io/repos/github/Ripolin/potato411/badge.svg?branch=master)](https://coveralls.io/github/Ripolin/potato411?branch=master)
 
-T411 torrent provider implementation for CouchPotato. It uses the official [T411's API](https://api.t411.ai) without parsing any HTML files.
+T411 torrent provider implementation for CouchPotato. It uses the official [T411's API](https://api.t411.al) without parsing any HTML files.
 
 ## How to install
 

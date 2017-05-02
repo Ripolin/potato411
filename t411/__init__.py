@@ -12,7 +12,7 @@ config = [{
             'tab': 'searcher',
             'list': 'torrent_providers',
             'name': 't411',
-            'description': '<a href="https://www.t411.ai/">T411</a>',
+            'description': '<a href="https://www.t411.al/">T411</a>',
             'icon': 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQIC'
                     'AgIfAhkiAAAAc5JREFUOI3tkk9IU3EAxz/vrbWeb+/NNdtmBS5kEHWwYf'
                     'YHKulWCbtIh4i8JAYN6pRReKwMiooOElEGYkllUIgVTBhZRGHRKnBbaeG'

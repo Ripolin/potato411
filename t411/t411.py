@@ -12,11 +12,11 @@ import traceback
 class T411(TorrentProvider, MovieProvider):
     """
     Couchpotato plugin to search movies torrents using T411 APIs. More
-    information about T411 APIs on https://api.t411.li.
+    information about T411 APIs on https://api.t411.al.
     """
 
     url_scheme = 'https'
-    domain_name = 't411.ai'
+    domain_name = 't411.al'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
     limit = 200
