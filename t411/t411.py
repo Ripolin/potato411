@@ -66,8 +66,7 @@ class T411(TorrentProvider, MovieProvider):
         """
         if data and ('error' in data):
             e = T411Error(data['code'], data['error'])
-            self.log.error('T411 return code {0}: {1}'.format(e.code,
-                                                              e.message))
+            self.log.error(str(e))
             # Error 201 = Token has expired
             # Error 202 = Invalid token
             if e.code in [201, 202]:
@@ -200,8 +199,14 @@ class T411Error(Exception):
 
     def __init__(self, code, message):
         """
-        Default constructor
+        Default constructor.
         """
         Exception.__init__(self)
         self.code = int(code)
         self.message = message
+
+    def __str__(self):
+        """
+        String representation.
+        """
+        return "Error {} : {}".format(self.code, self.message)
