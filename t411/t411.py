@@ -17,11 +17,13 @@ class T411(TorrentProvider, MovieProvider):
 
     url_scheme = 'https'
     domain_name = 't411.al'
+    authentication_header = 'Authorization'
     token_ttl = 90  # T411 authentication token TTL = 90 days
     token_timestamp = None
     limit = 200
     login_fail_msg = 'Wrong password'  # Used by YarrProvider.login()
     http_time_between_calls = 0
+    headers = {}
     log = CPLog(__name__)
 
     def __init__(self):
@@ -32,6 +34,7 @@ class T411(TorrentProvider, MovieProvider):
         MovieProvider.__init__(self)
         path_www = self.url_scheme+'://www.'+self.domain_name
         path_api = self.url_scheme+'://api.'+self.domain_name
+        self.headers[self.authentication_header] = None
         self.urls = {
             'login': path_api+'/auth',  # Used by YarrProvider.login()
             'login_check': path_api,  # Used by YarrProvider.login()
@@ -39,9 +42,6 @@ class T411(TorrentProvider, MovieProvider):
             'url': path_api+'/torrents/download/{0}',
             'detail': path_api+'/torrents/details/{0}',
             'detail_url': path_www+'/torrents/?id={0}'
-        }
-        self.headers = {
-            'Authorization': None
         }
 
     def loginDownload(self, url='', nzb_id=''):
@@ -70,7 +70,7 @@ class T411(TorrentProvider, MovieProvider):
             # Error 201 = Token has expired
             # Error 202 = Invalid token
             if e.code in [201, 202]:
-                self.headers['Authorization'] = None
+                self.headers[self.authentication_header] = None
                 self.token_timestamp = None
             raise e
 
@@ -95,7 +95,7 @@ class T411(TorrentProvider, MovieProvider):
         try:
             data = json.loads(output)
             self.checkError(data)
-            self.headers['Authorization'] = data['token']
+            self.headers[self.authentication_header] = data['token']
             self.token_timestamp = datetime.now()
         except:
             raise
@@ -166,16 +166,16 @@ class T411(TorrentProvider, MovieProvider):
                                           '%Y-%m-%d %H:%M:%S')
                 # Convert size from byte to kilobyte
                 size = int(torrent['size'])/1024
-                tid = int(torrent['id'])
+                id_ = int(torrent['id'])
                 result = {
-                    'id': tid,
+                    'id': id_,
                     'name': torrent['name'],
                     'seeders': int(torrent['seeders']),
                     'leechers': int(torrent['leechers']),
                     'size': self.parseSize(str(size)+self.size_kb[0]),
                     'age': (now - added).days,
-                    'url': self.urls['url'].format(tid),
-                    'detail_url': self.urls['detail_url'].format(tid),
+                    'url': self.urls['url'].format(id_),
+                    'detail_url': self.urls['detail_url'].format(id_),
                     'verified': bool(int(torrent['isVerified'])),
                     'get_more_info': self.getMoreInfo,
                     'extra_check': self.extraCheck
