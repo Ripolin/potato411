@@ -137,7 +137,7 @@ class T411(TorrentProvider, MovieProvider):
         result = True
         ids = getImdb(nzb.get('description', ''), multiple=True)
         if len(ids) not in [0, 1]:
-            self.log.info('Too much IMDB movies: {0}'.format(', '.join(ids)))
+            self.log.info('Too much IMDB ids: {0}'.format(', '.join(ids)))
             result = False
         return result
 
