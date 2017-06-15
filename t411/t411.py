@@ -51,7 +51,7 @@ class T411(TorrentProvider, MovieProvider):
 
         .. seealso:: YarrProvider.loginDownload
         """
-        result = None
+        result = 'try_next'  # Go to next result if download fail
         try:
             if self.login():
                 result = self.urlopen(url, headers=self.headers)
