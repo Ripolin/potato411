@@ -22,7 +22,7 @@ class T411(TorrentProvider, MovieProvider):
     token_timestamp = None
     limit = 200
     login_fail_msg = 'Wrong password'  # Used by YarrProvider.login()
-    http_time_between_calls = 0
+    http_time_between_calls = 0  # Used by Plugin.wait()
     headers = {}
     log = CPLog(__name__)
 
@@ -32,9 +32,9 @@ class T411(TorrentProvider, MovieProvider):
         """
         TorrentProvider.__init__(self)
         MovieProvider.__init__(self)
-        path_www = self.url_scheme+'://www.'+self.domain_name
-        path_api = self.url_scheme+'://api.'+self.domain_name
-        self.headers[self.authentication_header] = None
+        path_www = T411.url_scheme+'://www.'+T411.domain_name
+        path_api = T411.url_scheme+'://api.'+T411.domain_name
+        self.headers[T411.authentication_header] = None
         self.urls = {
             'login': path_api+'/auth',  # Used by YarrProvider.login()
             'login_check': path_api,  # Used by YarrProvider.login()
@@ -56,7 +56,7 @@ class T411(TorrentProvider, MovieProvider):
             if self.login():
                 result = self.urlopen(url, headers=self.headers)
         except:
-            self.log.error('Failed getting release from {0}: {1}'.
+            T411.log.error('Failed getting release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))
         return result
 
@@ -66,11 +66,11 @@ class T411(TorrentProvider, MovieProvider):
         """
         if data and ('error' in data):
             e = T411Error(data['code'], data['error'])
-            self.log.error(str(e))
+            T411.log.error(str(e))
             # Error 201 = Token has expired
             # Error 202 = Invalid token
             if e.code in [201, 202]:
-                self.headers[self.authentication_header] = None
+                self.headers[T411.authentication_header] = None
                 self.token_timestamp = None
             raise e
 
@@ -95,7 +95,7 @@ class T411(TorrentProvider, MovieProvider):
         try:
             data = json.loads(output)
             self.checkError(data)
-            self.headers[self.authentication_header] = data['token']
+            self.headers[T411.authentication_header] = data['token']
             self.token_timestamp = datetime.now()
         except:
             raise
@@ -111,7 +111,7 @@ class T411(TorrentProvider, MovieProvider):
         result = True
         now = datetime.now()
         if (self.token_timestamp is None) or ((now - self.token_timestamp).
-                                              days >= self.token_ttl):
+                                              days >= T411.token_ttl):
             result = False
         return result
 
@@ -137,7 +137,7 @@ class T411(TorrentProvider, MovieProvider):
         result = True
         ids = getImdb(nzb.get('description', ''), multiple=True)
         if len(ids) not in [0, 1]:
-            self.log.info('Too much IMDB ids: {0}'.format(', '.join(ids)))
+            T411.log.info('Too much IMDB ids: {0}'.format(', '.join(ids)))
             result = False
         return result
 
@@ -154,7 +154,7 @@ class T411(TorrentProvider, MovieProvider):
             params = {
                 'cid': 210,  # Movie/Video category
                 'offset': offset,
-                'limit': self.limit
+                'limit': T411.limit
             }
             url = self.urls['search'].format(simplifyString(title),
                                              tryUrlencode(params))
@@ -180,15 +180,15 @@ class T411(TorrentProvider, MovieProvider):
                     'get_more_info': self.getMoreInfo,
                     'extra_check': self.extraCheck
                 }
-                self.log.debug('{0}|{1}'.format(result.get('id'),
+                T411.log.debug('{0}|{1}'.format(result.get('id'),
                                simplifyString(result.get('name'))))
                 results.append(result)
             # Get next page if we don't have all results
             if int(data['total']) > len(data['torrents'])+offset:
                 self._searchOnTitle(title, media, quality, results,
-                                    offset+self.limit)
+                                    offset+T411.limit)
         except:
-            self.log.error('Failed searching release from {0}: {1}'.
+            T411.log.error('Failed searching release from {0}: {1}'.
                            format(self.getName(), traceback.format_exc()))
 
 

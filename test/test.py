@@ -32,10 +32,9 @@ class TestPotato411:
         Env.set('settings', settings)
         Env.set('http_opener', requests.Session())
         Env.set('cache', NoCache())
-        t411 = T411()
-        t411.log.logger.setLevel('DEBUG')
-        t411.log.logger.addHandler(handler)
-        return t411
+        T411.log.logger.setLevel('DEBUG')
+        T411.log.logger.addHandler(handler)
+        return T411()
 
     def test_loginKO(self):
         t411 = self.setUp(conf='/wrong.cfg')
@@ -106,7 +105,7 @@ class TestPotato411:
                 if result['id'] not in ids:
                     ids.append(result['id'])
             assert len(results) == len(ids)  # No duplication
-            assert len(results) > t411.limit
+            assert len(results) > T411.limit
 
     def test_searchAnim(self):
         t411 = self.setUp()
