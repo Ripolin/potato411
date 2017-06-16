@@ -162,27 +162,30 @@ class T411(TorrentProvider, MovieProvider):
             self.checkError(data)
             now = datetime.now()
             for torrent in data['torrents']:
-                added = datetime.strptime(torrent['added'],
-                                          '%Y-%m-%d %H:%M:%S')
-                # Convert size from byte to kilobyte
-                size = int(torrent['size'])/1024
-                id_ = int(torrent['id'])
-                result = {
-                    'id': id_,
-                    'name': torrent['name'],
-                    'seeders': int(torrent['seeders']),
-                    'leechers': int(torrent['leechers']),
-                    'size': self.parseSize(str(size)+self.size_kb[0]),
-                    'age': (now - added).days,
-                    'url': self.urls['url'].format(id_),
-                    'detail_url': self.urls['detail_url'].format(id_),
-                    'verified': bool(int(torrent['isVerified'])),
-                    'get_more_info': self.getMoreInfo,
-                    'extra_check': self.extraCheck
-                }
-                T411.log.debug('{0}|{1}'.format(result.get('id'),
-                               simplifyString(result.get('name'))))
-                results.append(result)
+                category = int(torrent['category'])
+                # Filter on animations, movies & documentaries
+                if category in [455, 631, 634]:
+                    added = datetime.strptime(torrent['added'],
+                                              '%Y-%m-%d %H:%M:%S')
+                    # Convert size from byte to kilobyte
+                    size = int(torrent['size'])/1024
+                    id_ = int(torrent['id'])
+                    result = {
+                        'id': id_,
+                        'name': torrent['name'],
+                        'seeders': int(torrent['seeders']),
+                        'leechers': int(torrent['leechers']),
+                        'size': self.parseSize(str(size)+self.size_kb[0]),
+                        'age': (now - added).days,
+                        'url': self.urls['url'].format(id_),
+                        'detail_url': self.urls['detail_url'].format(id_),
+                        'verified': bool(int(torrent['isVerified'])),
+                        'get_more_info': self.getMoreInfo,
+                        'extra_check': self.extraCheck
+                    }
+                    T411.log.debug('{0}|{1}'.format(result.get('id'),
+                                   simplifyString(result.get('name'))))
+                    results.append(result)
             # Get next page if we don't have all results
             if int(data['total']) > len(data['torrents'])+offset:
                 self._searchOnTitle(title, media, quality, results,
